@@ -12,6 +12,13 @@ from models.loss_ssim import SSIMLoss
 from utils.utils_model import test_mode
 from utils.utils_regularizers import regularizer_orth, regularizer_clip
 
+# BNN MOD: Conditionally import torchbnn for the KL loss
+try:
+    import torchbnn as bnn
+    TORCHBNN_AVAILABLE = True
+except ImportError:
+    TORCHBNN_AVAILABLE = False
+
 
 class ModelPlain(ModelBase):
     """Train with pixel loss"""
@@ -101,6 +108,14 @@ class ModelPlain(ModelBase):
             raise NotImplementedError('Loss type [{:s}] is not found.'.format(G_lossfn_type))
         self.G_lossfn_weight = self.opt_train['G_lossfn_weight']
 
+        # BNN MOD: Define KL divergence loss if using a Bayesian model
+        self.is_bayesian = 'bayesian' in self.opt['netG']['net_type']
+        if self.is_bayesian:
+            if not TORCHBNN_AVAILABLE:
+                raise ImportError("torchbnn is not installed. Please run 'pip install torchbnn'")
+            self.kl_loss = bnn.BKLLoss(reduction='mean', last_layer_only=False)
+            self.kl_beta = self.opt_train.get('kl_beta', 0.1) # Get beta from config, or default to 0.1
+
     # ----------------------------------------
     # define optimizer
     # ----------------------------------------
@@ -163,7 +178,20 @@ class ModelPlain(ModelBase):
     def optimize_parameters(self, current_step):
         self.G_optimizer.zero_grad()
         self.netG_forward()
-        G_loss = self.G_lossfn_weight * self.G_lossfn(self.E, self.H)
+        
+        # BNN MOD: Calculate combined loss for Bayesian networks or standard loss
+        if self.is_bayesian:
+            l_pixel = self.G_lossfn_weight * self.G_lossfn(self.E, self.H)
+            l_kl = self.kl_loss(self.netG)
+            G_loss = l_pixel + self.kl_beta * l_kl
+
+            # Log individual losses for better tracking
+            self.log_dict['l_pixel'] = l_pixel.item()
+            self.log_dict['l_kl'] = l_kl.item()
+        else:
+            # Standard loss calculation
+            G_loss = self.G_lossfn_weight * self.G_lossfn(self.E, self.H)
+
         G_loss.backward()
 
         # ------------------------------------
@@ -271,3 +299,4 @@ class ModelPlain(ModelBase):
     def info_params(self):
         msg = self.describe_params(self.netG)
         return msg
+
