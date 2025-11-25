@@ -28,18 +28,18 @@ def get_config():
         "experiment_root": "active_learning_experiment",
         
         # --- Training Data Paths ---
-        "dataroot_H": "/home/ra/hniknam/Documents/Code/DIV2K_train_HR/DIV2K_train_HR",
-        "dataroot_L": "/home/ra/hniknam/Documents/Code/DIV2K_train_LR_bicubic/X4",
+        "dataroot_H": "/home/fnik/projects/def-djavad/fnik/datasets/data/DIV2K_train_HR",
+        "dataroot_L": "/home/fnik/projects/def-djavad/fnik/datasets/data/DIV2K_train_LR_bicubic/X4",
 
-        # --- Validation Data Paths ---
-        "dataroot_H_valid": "/home/ra/hniknam/Documents/Code/DIV2K_valid_HR/DIV2K_valid_HR",
-        "dataroot_L_valid": "/home/ra/hniknam/Documents/Code/DIV2K_valid_LR_bicubic/X4",
+        "dataroot_H_valid": "/home/fnik/projects/def-djavad/fnik/datasets/data/DIV2K_valid_HR",
+        "dataroot_L_valid": "/home/fnik/projects/def-djavad/fnik/datasets/data/DIV2K_valid_LR_bicubic/X4",
+
 
         # --- Model & Training Parameters ---
         "scale": 4, "gpu_ids": [0], "patch_size": 96, "batch_size": 8, "num_workers": 4,
 
         # --- Iterations ---
-        "iterations_initial": 500000, "iterations_subset": 500000,
+        "iterations_initial": 150000, "iterations_subset": 150000,
 
         # --- Active Learning Parameters ---
         "subset_percentages": [20, 30, 40, 50, 60, 70, 80],
@@ -88,6 +88,13 @@ def load_and_prepare_opts(base_opts_path, cfg, task_name):
     # Training iterations
     if 'train' in opts:
         opts['train']['n_iter'] = cfg['iterations_initial']
+
+        opts['train']['G_scheduler_milestones'] = [
+            int(total_iter * 0.50),  # 75,000
+            int(total_iter * 0.80),  # 120,000
+            int(total_iter * 0.90),  # 135,000
+            int(total_iter * 0.95)   # 142,500
+        ]
 
     return opts
 

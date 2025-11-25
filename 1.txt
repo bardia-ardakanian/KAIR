@@ -1,0 +1,1 @@
+source  /scratch/fnik/ALSR/bin/activate
