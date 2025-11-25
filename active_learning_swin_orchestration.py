@@ -1,19 +1,3 @@
-# =================================================================================
-# run_active_learning_experiment.py (v8 - Configurable Validation Path)
-#
-# Author: GitHub Copilot (@copilot)
-# Date: 2025-10-14
-#
-# Description:
-# This script orchestrates a complete active learning experiment for super-resolution
-# using the KAIR framework.
-#
-# Changes in v8:
-# - Added `dataroot_H_valid` and `dataroot_L_valid` to the main config function.
-# - The script now dynamically sets the validation dataset path for all training
-#   runs, allowing for easy configuration of all data paths.
-# =================================================================================
-
 import os
 import json
 import random
