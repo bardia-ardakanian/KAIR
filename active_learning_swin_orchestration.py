@@ -87,7 +87,8 @@ def load_and_prepare_opts(base_opts_path, cfg, task_name):
 
     # Training iterations
     if 'train' in opts:
-        opts['train']['n_iter'] = cfg['iterations_initial']
+        total_iter = cfg['iterations_initial']
+        opts['train']['n_iter'] = total_iter
 
         opts['train']['G_scheduler_milestones'] = [
             int(total_iter * 0.50),  # 75,000
